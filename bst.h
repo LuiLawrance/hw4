@@ -212,6 +212,7 @@ public:
     {
     public:
         iterator();
+        iterator(Node<Key,Value>* ptr);
 
         std::pair<const Key,Value>& operator*() const;
         std::pair<const Key,Value>* operator->() const;
@@ -223,7 +224,6 @@ public:
 
     protected:
         friend class BinarySearchTree<Key, Value>;
-        iterator(Node<Key,Value>* ptr);
         Node<Key, Value> *current_;
     };
 
@@ -249,8 +249,6 @@ protected:
     // Add helper functions here
     void clearRecursive(Node<Key, Value>* node);
     int checkBalance(Node<Key, Value>* node, int& height) const;
-
-
 protected:
     Node<Key, Value>* root_;
     // You should not need other data members
@@ -265,98 +263,74 @@ Begin implementations for the BinarySearchTree::iterator class.
 /**
 * Explicit constructor that initializes an iterator with a given node pointer.
 */
-template<class Key, class Value>
-BinarySearchTree<Key, Value>::iterator::iterator(Node<Key,Value> *ptr)
-{
-    // TODO
-    current_ = ptr;
-}
+template<typename Key, typename Value>
+BinarySearchTree<Key, Value>::iterator::iterator(Node<Key, Value>* ptr) : current_(ptr) {}
 
 /**
 * A default constructor that initializes the iterator to NULL.
 */
-template<class Key, class Value>
-BinarySearchTree<Key, Value>::iterator::iterator() 
-{
-    // TODO
-    current_ = nullptr;
-}
+template<typename Key, typename Value>
+BinarySearchTree<Key, Value>::iterator::iterator() : current_(nullptr) {}
 
 /**
 * Provides access to the item.
 */
-template<class Key, class Value>
-std::pair<const Key,Value> &
-BinarySearchTree<Key, Value>::iterator::operator*() const
-{
+template<typename Key, typename Value>
+std::pair<const Key, Value>& BinarySearchTree<Key, Value>::iterator::operator*() const {
     return current_->getItem();
 }
 
 /**
 * Provides access to the address of the item.
 */
-template<class Key, class Value>
-std::pair<const Key,Value> *
-BinarySearchTree<Key, Value>::iterator::operator->() const
-{
+template<typename Key, typename Value>
+std::pair<const Key, Value>* BinarySearchTree<Key, Value>::iterator::operator->() const {
     return &(current_->getItem());
 }
 
 /**
-* Checks if 'this' iterator's internals have the same value
-* as 'rhs'
+* Checks if 'this' iterator's internals have the same value as 'rhs'.
 */
-template<class Key, class Value>
-bool
-BinarySearchTree<Key, Value>::iterator::operator==(
-    const BinarySearchTree<Key, Value>::iterator& rhs) const
-{
-    // TODO
+template<typename Key, typename Value>
+bool BinarySearchTree<Key, Value>::iterator::operator==(const BinarySearchTree<Key, Value>::iterator& rhs) const {
     return current_ == rhs.current_;
 }
 
 /**
-* Checks if 'this' iterator's internals have a different value
-* as 'rhs'
+* Checks if 'this' iterator's internals have a different value as 'rhs'.
 */
-template<class Key, class Value>
-bool
-BinarySearchTree<Key, Value>::iterator::operator!=(
-    const BinarySearchTree<Key, Value>::iterator& rhs) const
-{
-    // TODO
+template<typename Key, typename Value>
+bool BinarySearchTree<Key, Value>::iterator::operator!=(const BinarySearchTree<Key, Value>::iterator& rhs) const {
     return current_ != rhs.current_;
 }
 
-
 /**
-* Advances the iterator's location using an in-order sequencing
+* Advances the iterator's location using an in-order sequencing.
 */
-template<class Key, class Value>
-typename BinarySearchTree<Key, Value>::iterator&
-BinarySearchTree<Key, Value>::iterator::operator++()
-{
-    // TODO
+template<typename Key, typename Value>
+typename BinarySearchTree<Key, Value>::iterator& BinarySearchTree<Key, Value>::iterator::operator++() {
+    if (current_ == nullptr) {
+        return *this;
+    }
+
     if (current_->getRight() != nullptr) {
-      current_ = current_->getRight();
-      
-      while (current_->getLeft() != nullptr) {
-        current_ = current_->getLeft();
-      }
-    } 
-    else {
-      Node<Key, Value>* parent = current_->getParent();
-      
-      while (parent != nullptr && current_ == parent->getRight()) {
+        // If there is a right child, move to the right child and then keep moving to the left child until no more left child is available
+        current_ = current_->getRight();
+        while (current_->getLeft() != nullptr) {
+            current_ = current_->getLeft();
+        }
+    } else {
+        // If there is no right child, move up the tree until a parent is found whose left child is the current node
+        Node<Key, Value>* parent = current_->getParent();
+        while (parent != nullptr && current_ == parent->getRight()) {
+            current_ = parent;
+            parent = parent->getParent();
+        }
         current_ = parent;
-        parent = parent->getParent();
-      }
-      current_ = parent;
     }
 
     return *this;
 }
-
 
 /*
 -------------------------------------------------------------
